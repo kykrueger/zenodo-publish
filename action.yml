@@ -1,0 +1,85 @@
+name: 'Zenodo Publish'
+description: 'Publishes a new version of the provided Zenodo Deposition'
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
+inputs:
+  zenodo_deposition_id:
+    description: 'The ID of the Zenodo Deposition to publish to.'
+    required: true
+  whitelist_uploads:
+    description: 'The file with filepaths and directory paths per line that should be uploaded to the deposition'
+    required: false
+    default: '.whitelist_upload'
+  zenodo_metadata:
+    description: 'The Json file containing metadata for your deposition'
+    required: false
+    default: '.zenodo.json'
+  zenodo_server:
+    description: 'The URL of the Zenodo Server to use, set "https://zenodo.org" for production'
+    required: false
+    default: 'https://sandbox.zenodo.org'
+  zenodo_token:
+    description: 'The Auth Token for Zenodo'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+    - name: Install zenodo-rest
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install zenodo-rest==0.0.0b7
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Fetch Latest Deposition
+      shell: bash
+      env:
+        ZENODO_TOKEN: ${{ inputs.zenodo_token }}
+        ZENODO_URL: ${{ inputs.zenodo_server }}
+      run: |
+        zenodo-rest depositions retrieve ${{ inputs.zenodo_deposition_id }} --dest tmp/.zenodo_deposition.json
+    - name: Update metadata
+      shell: bash
+      env:
+        ZENODO_TOKEN: ${{ inputs.zenodo_token }}
+        ZENODO_URL: ${{ inputs.zenodo_server }}
+      run: |
+        if test ! -f .zenodo.json
+        then
+          echo "No metadata to update"
+          exit
+         fi
+        zenodo-rest depositions update tmp/.zenodo_deposition.json ${{ inputs.zenodo_metadata }}
+    - name: Remove old attachments 
+      shell: bash
+      env:
+        ZENODO_TOKEN: ${{ inputs.zenodo_token }}
+        ZENODO_URL: ${{ inputs.zenodo_server }}
+      run: |
+        zenodo-rest depositions delete-files tmp/.zenodo_deposition.json
+    - name: Upload attachments 
+      shell: bash
+      env:
+        ZENODO_TOKEN: ${{ inputs.zenodo_token }}
+        ZENODO_URL: ${{ inputs.zenodo_server }}
+      run: |
+        xargs -a .whitelist_upload -I {} zenodo-rest depositions upload-file tmp/.zenodo_deposition.json {}
+    - name: Publish updated deposition
+      shell: bash
+      env:
+        ZENODO_TOKEN: ${{ inputs.zenodo_token }}
+        ZENODO_URL: ${{ inputs.zenodo_server }}
+      run: zenodo-rest depositions publish tmp/.zenodo_deposition.json
+    - name: Cleanup 
+      shell: bash
+      run: |
+        if test ! -f .tmp_zenodo_deposition.json
+        then
+          echo "Nothing to cleanup, exiting early"
+          exit
+         fi
+        rm .tmp_zenodo_deposition.json
