@@ -41,7 +41,7 @@ runs:
         ZENODO_TOKEN: ${{ inputs.zenodo_token }}
         ZENODO_URL: ${{ inputs.zenodo_server }}
       run: |
-        zenodo-rest depositions retrieve ${{ inputs.zenodo_deposition_id }} --dest tmp/.zenodo_deposition.json
+        zenodo-rest depositions retrieve ${{ inputs.zenodo_deposition_id }} --dest .tmp_zenodo_deposition.json
     - name: Update metadata
       shell: bash
       env:
@@ -53,27 +53,27 @@ runs:
           echo "No metadata to update"
           exit
          fi
-        zenodo-rest depositions update tmp/.zenodo_deposition.json ${{ inputs.zenodo_metadata }}
+        zenodo-rest depositions update .tmp_zenodo_deposition.json ${{ inputs.zenodo_metadata }}
     - name: Remove old attachments 
       shell: bash
       env:
         ZENODO_TOKEN: ${{ inputs.zenodo_token }}
         ZENODO_URL: ${{ inputs.zenodo_server }}
       run: |
-        zenodo-rest depositions delete-files tmp/.zenodo_deposition.json
+        zenodo-rest depositions delete-files .tmp_zenodo_deposition.json
     - name: Upload attachments 
       shell: bash
       env:
         ZENODO_TOKEN: ${{ inputs.zenodo_token }}
         ZENODO_URL: ${{ inputs.zenodo_server }}
       run: |
-        xargs -a .whitelist_upload -I {} zenodo-rest depositions upload-file tmp/.zenodo_deposition.json {}
+        xargs -a .whitelist_upload -I {} zenodo-rest depositions upload-file .tmp_zenodo_deposition.json {}
     - name: Publish updated deposition
       shell: bash
       env:
         ZENODO_TOKEN: ${{ inputs.zenodo_token }}
         ZENODO_URL: ${{ inputs.zenodo_server }}
-      run: zenodo-rest depositions publish tmp/.zenodo_deposition.json
+      run: zenodo-rest depositions publish .tmp_zenodo_deposition.json
     - name: Cleanup 
       shell: bash
       run: |
