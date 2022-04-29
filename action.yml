@@ -10,7 +10,7 @@ inputs:
   whitelist_uploads:
     description: 'The file with filepaths and directory paths per line that should be uploaded to the deposition'
     required: false
-    default: '.whitelist_upload'
+    default: '.zenodo_whitelist_uploads'
   zenodo_metadata:
     description: 'The Json file containing metadata for your deposition'
     required: false
@@ -67,7 +67,7 @@ runs:
         ZENODO_TOKEN: ${{ inputs.zenodo_token }}
         ZENODO_URL: ${{ inputs.zenodo_server }}
       run: |
-        xargs -a .whitelist_upload -I {} zenodo-rest depositions upload-file .tmp_zenodo_deposition.json {}
+        xargs -a ${{ inputs.whitelist_uploads }} -I {} zenodo-rest depositions upload-file .tmp_zenodo_deposition.json {}
     - name: Publish updated deposition
       shell: bash
       env:
