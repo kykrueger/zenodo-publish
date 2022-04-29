@@ -46,12 +46,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: kykrueger/zenodo-new-version@v1-beta2
+      - uses: kykrueger/zenodo-new-version@v1
         with:
           zenodo_deposition_id: ${{ env.zenodo_deposition_id }}
           zenodo_server: ${{ env.zenodo_server }}
           zenodo_token: ${{ secrets.ZENODO_SANDBOX_TOKEN }}
-      - uses: kykrueger/zenodo-publish@v1-beta2
+      - uses: kykrueger/zenodo-publish@v1
         with:
           zenodo_deposition_id: ${{ env.zenodo_deposition_id }}
           zenodo_server: ${{ env.zenodo_server }}
