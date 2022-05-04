@@ -48,7 +48,7 @@ runs:
         ZENODO_TOKEN: ${{ inputs.zenodo_token }}
         ZENODO_URL: ${{ inputs.zenodo_server }}
       run: |
-        if test ! -f .zenodo.json
+        if test ! -f ${{ inputs.zenodo_metadata }}
         then
           echo "No metadata to update"
           exit
