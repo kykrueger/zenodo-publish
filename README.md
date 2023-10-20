@@ -1,3 +1,6 @@
+# Deprecated
+This action was broken by the major Zenodo release of Oct 2023.
+
 # zenodo-publish
 Publish a zenodo draft with this github action.
 
